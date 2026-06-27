@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Indian Highway Drive - Start.io Earnings Edition</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #87CEEB;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        #canvas-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #0d1b2a 0%, #010811 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            transition: opacity 0.5s ease;
+        }
+        .welcome-box {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(0, 114, 255, 0.2));
+            border: 2px solid #00f0ff;
+            padding: 20px 40px;
+            border-radius: 16px;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.3), inset 0 0 15px rgba(0, 240, 255, 0.2);
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            color: #00f0ff;
+            text-shadow: 0 0 12px rgba(0, 240, 255, 0.8);
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            animation: pulse 2s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 240, 255, 0.3); }
+            100% { transform: scale(1.03); box-shadow: 0 0 40px rgba(0, 240, 255, 0.6); }
+        }
+        .loader-bar-bg {
+            width: 260px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+        }
+        .loader-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #0072ff, #00f0ff);
+            box-shadow: 0 0 10px #00f0ff;
+            transition: width 0.1s linear;
+        }
+        .loading-text {
+            font-family: 'Orbitron', sans-serif;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        #countdown-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 5000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+        #countdown-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 6rem;
+            font-weight: 900;
+            color: #00f0ff;
+            text-shadow: 0 0 30px #00f0ff;
+            animation: zoomInOut 1s infinite ease-in-out;
+        }
+        @keyframes zoomInOut {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+
+        #fuel-purchase-terminal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 10, 20, 0.96);
+            z-index: 4000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+
+        .terminal-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            background: radial-gradient(circle at center, rgba(20, 35, 65, 0.95) 0%, rgba(5, 12, 28, 0.99) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px 20px;
+            color: #fff;
+            overflow-y: auto;
+        }
+        
+        .header-text {
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            padding: 16px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.1), inset 0 0 15px rgba(0, 240, 255, 0.05);
+        }
+        .header-text h1 {
+            font-size: 1.4rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: #00f0ff;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+            text-transform: uppercase;
+        }
+        #daily-banner {
+            margin-top: 12px;
+            background: linear-gradient(90deg, #ffcc00, #ff9900);
+            color: #000;
+            padding: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 6px;
+            box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
+            transition: transform 0.2s;
+        }
+        #daily-banner:active { transform: scale(0.98); }
+
+        .center-dashboard {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .wallet-node {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.6rem;
+            margin-bottom: 24px;
+            color: #ffd700;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+            font-weight: 700;
+            background: rgba(255, 215, 0, 0.06);
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .grid-menu-matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .btn-matrix {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #e0e6ed;
+            padding: 14px 10px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            text-align: center;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-matrix:active {
+            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #ffffff;
+        }
+        
+        #tab-garage { border-color: rgba(0, 240, 255, 0.4); color: #00f0ff; }
+        #tab-upgrade { border-color: rgba(157, 78, 221, 0.5); color: #b5179e; }
+        #tab-bet { border-color: rgba(255, 75, 75, 0.4); color: #ff4b4b; }
+        #tab-loot { border-color: rgba(57, 255, 20, 0.4); color: #39ff14; }
+
+        #lucky-spin-btn {
+            grid-column: span 2;
+            background: linear-gradient(90deg, rgba(255,204,0,0.1), rgba(255,153,0,0.1));
+            border: 1px solid #ffcc00;
+            color: #ffcc00;
+            text-shadow: 0 0 8px rgba(255, 204, 0, 0.4);
+        }
+        #ad-free-coins-btn {
+            grid-column: span 2;
+            background: linear-gradient(90deg, rgba(57,255,20,0.1), rgba(0,240,255,0.1));
+            border: 1px solid #39ff14;
+            color: #39ff14;
+            text-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+        }
+        
+        #launch-mission-btn {
+            grid-column: span 2;
+            background: linear-gradient(90deg, #00f0ff 0%, #0072ff 100%);
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 900;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            letter-spacing: 2px;
+            box-shadow: 0 8px 25px rgba(0, 240, 255, 0.3);
+            margin-top: 5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        #launch-mission-btn:active { transform: scale(0.97); }
+        
+        .sub-panel-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(6, 10, 23, 0.98);
+            z-index: 20;
+            display: none;
+            flex-direction: column;
+            padding: 28px 20px;
+            color: #fff;
+        }
+        .sub-panel-title {
+            font-family: 'Orbitron', sans-serif;
+            color: #00f0ff;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+        }
+        .scrollable-holder {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-right: 4px;
+        }
+        .scrollable-holder::-webkit-scrollbar { width: 4px; }
+        .scrollable-holder::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        
+        .grid-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            padding: 16px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 12px;
+        }
+        .grid-box.active {
+            border-color: #39ff14;
+            background: rgba(57, 255, 20, 0.05);
+        }
+        .grid-box b {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            color: #f0f4f8;
+        }
+        .btn-action {
+            font-family: 'Orbitron', sans-serif;
+            background: #00f0ff;
+            border: none;
+            color: #000;
+            padding: 10px 16px;
+            font-weight: 900;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .btn-close {
+            font-family: 'Orbitron', sans-serif;
+            background: transparent;
+            color: #ff4b4b;
+            border: 1px solid rgba(255, 75, 75, 0.3);
+            padding: 14px;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            border-radius: 10px;
+        }
+        
+        #gameover-terminal, #pause-modal, #revive-terminal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(3, 5, 12, 0.96);
+            z-index: 999;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+        #gameover-terminal h1, #revive-terminal h1, #pause-modal h2 {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 15px rgba(255, 51, 51, 0.4);
+            margin-bottom: 10px;
+        }
+        
+        #game-hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+            display: none;
+        }
+        .hud-top-bar {
+            position: absolute;
+            top: 14px;
+            width: calc(100% - 24px);
+            left: 12px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            pointer-events: auto;
+        }
+        .hud-pill {
+            background: rgba(10, 15, 30, 0.75);
+            border: 1px solid rgba(255, 254, 255, 0.1);
+            color: #00f0ff;
+            padding: 8px;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-align: center;
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .hud-pill.span-two { grid-column: span 2; }
+        .hud-pill.pause-btn { border-color: rgba(255, 75, 75, 0.4); color: #ff4b4b; cursor: pointer; }
+
+        #near-miss-pop {
+            position: absolute;
+            top: 25%; 
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            color: #ffcc00;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            text-shadow: 0 0 20px rgba(255, 204, 0, 0.6);
+            z-index: 100;
+            display: none;
+            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+        #combo-pop {
+            position: absolute;
+            top: 32%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #39ff14;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            display: none;
+            text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+            z-index: 100;
+        }
+
+        .lane-touch-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 4;
+            display: flex;
+            pointer-events: auto;
+        }
+        .lane-click-zone { flex: 1; height: 100%; background: transparent; }
+
+        #multiplier-wheel-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 8, 18, 0.98);
+            z-index: 500;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            padding: 20px;
+        }
+        .wheel-container {
+            position: relative;
+            width: 230px;
+            height: 230px;
+            margin: 30px 0;
+        }
+        .spin-wheel-element {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid #ffd700;
+            background: conic-gradient(
+                #ff3333 0deg 90deg, 
+                #ffcc00 90deg 180deg, 
+                #39ff14 180deg 270deg, 
+                #00f0ff 270deg 360deg
+            );
+            transition: transform 3.5s cubic-bezier(0.1, 0.8, 0.1, 1);
+        }
+        .wheel-pointer {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 24px solid #ffd700;
+            z-index: 510;
+        }
+        .wheel-labels {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1.3rem;
+            color: #000;
+        }
+        .wl-1 { position: absolute; top: 35px; left: 145px; transform: rotate(45deg); }
+        .wl-2 { position: absolute; top: 140px; left: 140px; transform: rotate(135deg); }
+        .wl-3 { position: absolute; top: 140px; left: 55px; transform: rotate(225deg); }
+        .wl-5 { position: absolute; top: 40px; left: 55px; transform: rotate(315deg); }
+
+        #hud-fuel-bar {
+            width: 55px; height: 8px; background: rgba(255,255,255,0.1); border: 1px solid #ffcc00; display: inline-block; border-radius: 4px; overflow: hidden;
+        }
+        #hud-fuel-fill {
+            width: 100%; height: 100%; background: linear-gradient(90deg, #ffcc00, #ff9900); transition: width 0.1s linear;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading-screen">
+        <div class="welcome-box">Welcome Driver</div>
+        <div class="loader-bar-bg">
+            <div class="loader-bar-fill" id="main-loader-fill"></div>
+        </div>
+        <div class="loading-text" id="loader-status-text">INITIALIZING SYSTEMS...</div>
+    </div>
+
+    <div id="countdown-overlay">
+        <div id="countdown-number">3</div>
+    </div>
+
+    <div id="fuel-purchase-terminal">
+        <h1 style="color: #ffcc00; font-family: 'Orbitron'; letter-spacing: 2px;">RESERVE FUEL DEPLETED!</h1>
+        <p style="color: rgba(255,255,255,0.8); margin: 15px 0; text-align: center; max-width: 340px; font-size: 1.1rem;">
+            Aapka engine framework band hone wala hai. Instant backup fuel grid inject karein!
+        </p>
+        <div style="font-family: 'Orbitron'; font-size: 1.3rem; color: #ffd700; margin-bottom: 25px;">
+            Current Balance: 🪙 <span id="fuel-prompt-coins">0</span> CR
+        </div>
+        <button class="btn-matrix" id="buy-fuel-instant-btn" style="width: 100%; max-width: 320px; background: #39ff14; color: #000; border: none; font-family: 'Orbitron'; font-weight: 900; padding: 16px; margin-bottom: 12px; font-size: 1rem;">
+            🪙 BUY FUEL GRID (200 COINS)
+        </button>
+        <button class="btn-matrix" id="skip-fuel-ad-btn" style="width: 100%; max-width: 320px; background: #00f0ff; color: #000; border: none; font-family: 'Orbitron'; font-weight: 900; padding: 16px; margin-bottom: 12px; font-size: 1rem;">
+            📺 WATCH AD FOR FREE REFILL
+        </button>
+        <button class="btn-matrix" id="terminate-fuel-btn" style="width: 100%; max-width: 320px; background: rgba(255,75,75,0.2); color: #ff4b4b; border: 1px solid #ff4b4b; font-family: 'Orbitron';">
+            TERMINATE DRIVE (GAME OVER)
+        </button>
+    </div>
+
+    <div id="canvas-wrapper"></div>
+    <div id="near-miss-pop">🔥 ULTRA NEAR MISS! +50</div>
+    <div id="combo-pop">COMBO X1</div>
+
+    <div id="road-touch-grid" class="lane-touch-container" style="display:none;">
+        <div class="lane-click-zone" id="zone-left"></div>
+        <div class="lane-click-zone" id="zone-center"></div>
+        <div class="lane-click-zone" id="zone-right"></div>
+    </div>
+
+    <div id="setup-menu-panel" class="terminal-panel" style="display: none;">
+        <div class="header-text">
+            <h1>INDIAN HIGHWAY DRIVE</h1>
+            <div id="daily-banner">🎁 CLAIM DAILY MATRIX REWARD (+100 COINS)</div>
+        </div>
+
+        <div class="center-dashboard">
+            <div class="wallet-node">🪙 <span id="menu-coins-val">1800</span> CR</div>
+            <div id="fuel-warning" style="color:#ff4b4b; font-family:'Orbitron'; font-size:0.75rem; margin-bottom:8px; font-weight:bold; letter-spacing:1px;"></div>
+            
+            <div class="grid-menu-matrix">
+                <button class="btn-matrix" id="tab-garage">🎨 VIP Garage</button>
+                <button class="btn-matrix" id="tab-upgrade">⚡ Tuning Lab</button>
+                <button class="btn-matrix" id="tab-bet">🎲 Double Shart</button>
+                <button class="btn-matrix" id="tab-loot">箱 Mystery Box</button>
+                <button class="btn-matrix" id="lucky-spin-btn">🎰 LUCKY SPIN WHEEL (150 COINS)</button>
+                <button class="btn-matrix" id="ad-free-coins-btn">📺 FREE RECHARGE CREDITS (+200)</button>
+                <button class="btn-matrix" id="launch-mission-btn">🚀 INITIALIZE CORE ENGINE</button>
+            </div>
+        </div>
+
+        <div style="text-align: center; font-size: 0.7rem; color: rgba(255,255,255,0.3); letter-spacing: 2px; font-family:'Orbitron';">
+            v4.2.0 START.IO ACTIVE INCOME ENGINE
+        </div>
+    </div>
+
+    <div id="sub-bet" class="sub-panel-overlay">
+        <div class="sub-panel-title">🎲 SYSTEMS RISK MECHANIC</div>
+        <div style="text-align:center; margin: 25px 0; line-height:1.8rem; font-size:0.95rem;">
+            <p>Risk 100 Credits! Survive the premium grid highway for over <b>30 Seconds</b> to harvest a <b>200 Coin Reward</b> instantly.</p>
+            <p style="margin-top:15px; color:#ffcc00; font-family:'Orbitron'; font-size:0.8rem;">BET POSITION: <span id="bet-status-lbl" style="color:#ff4b4b;">NO SYSTEM BONDED</span></p>
+        </div>
+        <button class="btn-matrix" id="place-bet-btn" style="background:#ffcc00; color:#000; padding:15px; width:100%; font-size:0.9rem; margin-bottom:14px; border:none; font-family:'Orbitron'; font-weight:900;">BOND 100 CREDITS</button>
+        <button class="btn-close" id="close-bet-btn">RETURN TO DASHBOARD</button>
+    </div>
+
+    <div id="sub-loot" class="sub-panel-overlay">
+        <div class="sub-panel-title">📦 ENCRYPTED LOOT CRATES</div>
+        <div style="text-align:center; margin: 30px 0;">
+            <p style="margin-bottom:20px; font-size:0.95rem;">De-crypt high priority tactical drops containing active shielding, massive jackpots or core fuel injections.</p>
+            <button class="btn-matrix" id="buy-loot-btn" style="background:#ff3333; color:#fff; border-color:#fff; padding:166px; width:100%; font-size:0.9rem; box-shadow:0 0 20px rgba(255,51,51,0.4); font-family:'Orbitron'; font-weight:900;">DE-CRYPT DROP (200 C)</button>
+        </div>
+        <button class="btn-close" id="close-loot-btn">CLOSE DEPOT</button>
+    </div>
+
+    <div id="multiplier-wheel-overlay">
+        <h2 style="color: #ffd700;">🎰 LUCKY MULTIPLIER SPIN</h2>
+        <p style="margin-top: 5px; font-size: 1rem;">Base Yield: <span id="base-prize-txt" style="color:#39ff14; font-weight:bold;">0</span> Coins</p>
+        
+        <div class="wheel-container">
+            <div class="wheel-pointer"></div>
+            <div class="spin-wheel-element" id="actual-wheel">
+                <div class="wheel-labels">
+                    <div class="wl-1">2x</div>
+                    <div class="wl-2">3x</div>
+                    <div class="wl-3">1x</div>
+                    <div class="wl-5">5x</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="width: 100%; max-width: 300px; display: flex; flex-direction: column; gap: 12px;">
+            <button class="btn-matrix" id="trigger-wheel-spin-btn" style="background:#ffd700; color:#000; border:none;">📺 MULTIPLY CORE YIELD (ADS)</button>
+            <button class="btn-matrix" id="skip-wheel-spin-btn" style="background:rgba(255,255,255,0.05); color:#fff;">EXTRACT BASE VALUE ONLY</button>
+            <button class="btn-matrix" id="claim-final-coins-btn" style="background:#39ff14; color:#000; border:none; display:none;">🎁 HARVEST CREDITS</button>
+        </div>
+    </div>
+
+    <div id="game-hud">
+        <div class="hud-top-bar">
+            <div class="hud-pill">🪙 <span id="hud-coins-val">0</span></div>
+            <div class="hud-pill">⏱️ <span id="hud-score-val">0s</span></div>
+            <div class="hud-pill">⚡ <span id="hud-speed-val">100 km/h</span></div>
+            <div class="hud-pill span-two">⛽ <div id="hud-fuel-bar"><div id="hud-fuel-fill"></div></div></div>
+            <div class="hud-pill pause-btn" id="hud-pause-btn">PAUSE</div>
+        </div>
+        <div style="position:absolute; top:95px; left:12px; width:calc(100% - 24px); display:flex; justify-content:space-between;" id="hud-lower-row">
+            <div class="hud-pill" style="color:#ff3333; background:rgba(0,0,0,0.6);" id="hud-hearts-val">❤️❤️❤️</div>
+            <div style="display:flex; gap:5px;" id="perks-display"></div>
+        </div>
+    </div>
+
+    <div id="sub-garage" class="sub-panel-overlay">
+        <div class="sub-panel-title">🎨 VIP CHASSIS WRAPS & SPECTRUMS</div>
+        <div class="scrollable-holder" id="garage-holder"></div>
+        <button class="btn-close" id="close-garage-btn">APPLY DESIGN CHANGES</button>
+    </div>
+
+    <div id="sub-upgrade" class="sub-panel-overlay">
+        <div class="sub-panel-title">⚡ TUNING LAB & MECHANICAL BENCH</div>
+        <div class="scrollable-holder">
+            <div class="grid-box">
+                <div><b>STEERING MATRIX LERPING</b><br><span id="handling-lvl-txt" style="color:#00f0ff;">Lvl 1</span></div>
+                <button class="btn-action" id="upgrade-handling-action">TUNE (500 C)</button>
+            </div>
+            <div class="grid-box">
+                <div><b>TOP VELOCITY CALIBRATION</b><br><span id="speed-lvl-txt" style="color:#00f0ff;">Lvl 1</span></div>
+                <button class="btn-action" id="upgrade-speed-action">BOOST (600 C)</button>
+            </div>
+            <div class="grid-box">
+                <div><b>⛽ DYNAMIC INSTANT REFUEL</b><br>Refill core fuel grids to max frameworks.</div>
+                <button class="btn-action" id="refuel-tank-action" style="background:#ffcc00;">FILL (200 C)</button>
+            </div>
+            <div class="grid-box">
+                <div><b>🧲 COIN COBALT MAGNET INJECTOR</b><br><span id="status-magnet" style="color:#ffcc00;">OFFLINE</span></div>
+                <button class="btn-action" id="buy-magnet-btn">FIT (500 C)</button>
+            </div>
+            <div class="grid-box">
+                <div><b>🛡️ PLASMA ENERGY SHIELD FRAME</b><br><span id="status-shield" style="color:#ffcc00;">OFFLINE</span></div>
+                <button class="btn-action" id="buy-shield-btn">FIT (700 C)</button>
+            </div>
+            <div class="grid-box">
+                <div><b>🚀 NITRO VALVES FLUID TANK</b><br><span id="status-nitro" style="color:#ffcc00;">OFFLINE</span></div>
+                <button class="btn-action" id="buy-nitro-btn">FIT (400 C)</button>
+            </div>
+        </div>
+        <button class="btn-close" id="close-upgrade-btn">RETURN TO LOBBY</button>
+    </div>
+
+    <div id="revive-terminal" style="color:#ff3333;">
+        <h1>CRITICAL CRASH</h1>
+        <p style="color:rgba(255,255,255,0.7); font-size:0.9rem; margin:15px 0; text-align:center;">Deploy fallback recovery sequence to fix chassis structures and resume drive instantly?</p>
+        <button class="btn-matrix" id="btn-revive-ad" style="width:100%; max-width:300px; background:#39ff14; color:#000; border:none; font-family:'Orbitron'; font-weight:900;">📺 DEPLOY AD RECOVERY REPAIR</button>
+        <button class="btn-matrix" id="btn-skip-revive" style="width:100%; max-width:300px; background:rgba(255,255,255,0.05); color:#fff; margin-top:12px;">TERMINATE BOND</button>
+    </div>
+
+    <div id="gameover-terminal" style="color:#ff3333;">
+        <h1>DRIVE ENDED</h1>
+        <div id="bet-outcome-msg" style="font-family:'Orbitron'; font-size:0.9rem; font-weight:bold; margin-bottom:12px;"></div>
+        
+        <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,204,0,0.2); padding:20px; width:100%; max-width:320px; margin-bottom:20px; font-size:0.9rem; line-height:2rem; border-radius:12px; font-family:'Orbitron'; color:#f0f4f8;">
+            • TOTAL TIME SURVIVED : <span id="final-score-lbl" style="color:#00f0ff;">0</span> SECS<br>
+            • COINS EXTRACTED RUN : <span id="final-coins-lbl" style="color:#ffd700;">0</span> CR
+        </div>
+
+        <button class="btn-matrix" id="btn-double-coins-ad" style="width:100%; max-width:300px; background:#ffcc00; color:#000; margin-bottom:12px; border:none; font-family:'Orbitron'; font-weight:900;">🎰 MULTIPLY RUN VALUES X5 (ADS)</button>
+        <button class="btn-matrix" id="btn-reboot-run" style="width:100%; max-width:300px; background:linear-gradient(90deg, #ff3333, #aa1111); color:#fff; border:none; font-family:'Orbitron';">REBOOT SYS ENGINE</button>
+    </div>
+
+    <div id="pause-modal" style="color:#ffcc00;">
+        <h2>SYS PAUSED</h2>
+        <div style="display:flex; flex-direction:column; gap:14px; width:100%; max-width:260px; margin-top:20px;">
+            <button class="btn-matrix" id="pause-resume-btn" style="background:#00f0ff; color:#000; border:none; font-family:'Orbitron'; font-weight:900;">RESUME SIMULATION</button>
+            <button class="btn-matrix" id="pause-quit-btn" style="color:#ff4b4b; border-color:rgba(255,75,75,0.4);">FORCE TERMINATE</button>
+        </div>
+    </div>
+
+    <script>
+    // Audio Context Setup for Sound Effects (Bina kisi external mp3 file load jhanjhat ke!)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'coin') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.08); // A5
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        } else if (type === 'crash') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.4);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+        } else if (type === 'nearmiss') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.15);
+            gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+        } else if (type === 'click') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.06);
+        } else if (type === 'fuel') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 0.2);
+            gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+        }
+    }
+
+    // NATIVE START.IO INTERFACES & REWARDED CALLBACK BRIDGE
+    window.StartioAndroidAdBridge = {
+        rewardCallbackTriggered: null,
+        
+        onAdRewardSuccess: function() {
+            if (this.rewardCallbackTriggered) {
+                this.rewardCallbackTriggered();
+                this.rewardCallbackTriggered = null;
+            }
+        },
+        onAdRewardDismissedOrFailed: function() {
+            alert("Ad closed or display matrix failed verification!");
+            this.rewardCallbackTriggered = null;
+        }
+    };
+
+    function requestStartioMobileAdPlacement(callback) {
+        window.StartioAndroidAdBridge.rewardCallbackTriggered = callback;
+        // WebView/Cordova Android interface trigger check
+        if (window.StartioNativeInterface) {
+            window.StartioNativeInterface.showStartioRewardedAd();
+        } else {
+            console.log("Start.io Web Sandbox Simulator Mode Active.");
+            setTimeout(() => { window.StartioAndroidAdBridge.onAdRewardSuccess(); }, 1000);
+        }
+    }
+
+    const GameState = {
+        isPlaying: false, isGameOver: false, isPaused: false,
+        coins: 1800, totalScore: 0, currentLane: 1, playerHP: 3,
+        lastSpawnTime: 0, scoreTimerTracker: 0,
+        equippedColor: '#ff2222', dailyClaimed: false, hasRevivedThisRun: false,
+        baseSpeed: 0.38, currentSpeedMultiplier: 1.0, fuel: 100,
+        
+        handlingLvl: 1, speedLvl: 1,
+        perkMagnetOwned: false, perkShieldOwned: false, perkNitroOwned: false,
+        betActive: false, comboCount: 0, lastNearMissTime: 0,
+
+        currentSpinReward: 0, currentMultiplier: 1, coinsCollectedThisRun: 0,
+        skins: [
+            { name: "🚗 Royal Standard", color: "#00f0ff", price: 0, purchased: true },
+            { name: "👑 Golden Luxury (1000 C)", color: "#ffd700", price: 1000, purchased: false },
+            { name: "🔥 Crimson Nitro (1500 C)", color: "#ff2222", price: 1500, purchased: false }
+        ]
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+        let percentage = 0;
+        const fillBar = document.getElementById('main-loader-fill');
+        const statusTxt = document.getElementById('loader-status-text');
+        
+        const loadInterval = setInterval(() => {
+            percentage += Math.floor(Math.random() * 12) + 5;
+            if (percentage >= 100) {
+                percentage = 100;
+                clearInterval(loadInterval);
+                statusTxt.innerText = "ALL SYSTEMS READY!";
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('loading-screen').style.display = 'none';
+                        document.getElementById('setup-menu-panel').style.display = 'flex';
+                    }, 500);
+                }, 600);
+            }
+            fillBar.style.width = `${percentage}%`;
+            if (percentage > 30 && percentage < 70) statusTxt.innerText = "COMPILING 3D GRAPHICS PLATFORMS...";
+            if (percentage >= 70 && percentage < 95) statusTxt.innerText = "CONNECTING START.IO AD MATRIX...";
+        }, 150);
+    });
+
+    if(localStorage.getItem('indian_highway_coins')) {
+        GameState.coins = parseInt(localStorage.getItem('indian_highway_coins'));
+        GameState.handlingLvl = parseInt(localStorage.getItem('indian_highway_handling') || "1");
+        GameState.speedLvl = parseInt(localStorage.getItem('indian_highway_speed') || "1");
+    }
+
+    function saveStateToStorage() {
+        localStorage.setItem('indian_highway_coins', GameState.coins);
+        localStorage.setItem('indian_highway_handling', GameState.handlingLvl);
+        localStorage.setItem('indian_highway_speed', GameState.speedLvl);
+    }
+
+    const structuralLaneVectors = [-4.5, 0.0, 4.5]; 
+    let mainScene, mainCamera, mainRenderer;
+    let runwayTracksArray = [], activeEntitiesArray = [], goldCoinsArray = [], fuelCansArray = [];
+    let playerVehicleMesh = null;
+
+    function updateDashboardWalletBalances() {
+        document.getElementById('menu-coins-val').innerText = GameState.coins;
+        document.getElementById('hud-coins-val').innerText = GameState.coins;
+        document.getElementById('handling-lvl-txt').innerText = `Lvl ${GameState.handlingLvl}`;
+        document.getElementById('speed-lvl-txt').innerText = `Lvl ${GameState.speedLvl}`;
+        document.getElementById('status-magnet').innerText = GameState.perkMagnetOwned ? "ONLINE" : "OFFLINE";
+        document.getElementById('status-shield').innerText = GameState.perkShieldOwned ? "ONLINE" : "OFFLINE";
+        document.getElementById('status-nitro').innerText = GameState.perkNitroOwned ? "ONLINE" : "OFFLINE";
+        saveStateToStorage();
+    }
+
+    function createCoinMesh() {
+        const coinGroup = new THREE.Group();
+        const geom = new THREE.CylinderGeometry(0.35, 0.35, 0.1, 14);
+        geom.rotateX(Math.PI / 2);
+        const mat = new THREE.MeshStandardMaterial({ color: '#ffff00', emissive: '#555500', metalness: 0.6, roughness: 0.1 });
+        const mesh = new THREE.Mesh(geom, mat);
+        mesh.position.y = 0.4;
+        coinGroup.add(mesh);
+        return coinGroup;
+    }
+
+    function createFuelCanMesh() {
+        const fuelGroup = new THREE.Group();
+        const bodyGeom = new THREE.BoxGeometry(0.45, 0.65, 0.3);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: '#ff4500', roughness: 0.2 });
+        const body = new THREE.Mesh(bodyGeom, bodyMat);
+        body.position.y = 0.35;
+        fuelGroup.add(body);
+        return fuelGroup;
+    }
+
+    function create3DTreeMesh() {
+        const treeGroup = new THREE.Group();
+        const heightMultiplier = 1.0 + Math.random() * 1.5; 
+        const radiusMultiplier = 0.8 + Math.random() * 0.8; 
+        const trunkGeom = new THREE.CylinderGeometry(0.2 * radiusMultiplier, 0.3 * radiusMultiplier, 2.0 * heightMultiplier, 8);
+        const trunkMat = new THREE.MeshStandardMaterial({ color: '#4a2211', roughness: 0.9 });
+        const trunk = new THREE.Mesh(trunkGeom, trunkMat);
+        trunk.position.y = (2.0 * heightMultiplier) / 2;
+        treeGroup.add(trunk);
+        const leavesGeom = new THREE.ConeGeometry(1.4 * radiusMultiplier, 3.5 * heightMultiplier, 8);
+        const leavesMat = new THREE.MeshStandardMaterial({ color: '#145c18', roughness: 0.7 });
+        const leaves = new THREE.Mesh(leavesGeom, leavesMat);
+        leaves.position.y = (2.0 * heightMultiplier) + (3.5 * heightMultiplier) / 3;
+        treeGroup.add(leaves);
+        return treeGroup;
+    }
+
+    function createDetailedRandomTrafficMesh() {
+        const trafficGroup = new THREE.Group();
+        const professionalColors = ['#111111', '#cc1111', '#0b5394', '#f6b26b', '#38761d'];
+        const randomColor = professionalColors[Math.floor(Math.random() * professionalColors.length)];
+        const bodyMat = new THREE.MeshStandardMaterial({ color: randomColor, metalness: 0.7, roughness: 0.2 });
+        const baseChassis = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.45, 2.8), bodyMat);
+        baseChassis.position.y = 0.3;
+        trafficGroup.add(baseChassis);
+        const cabinMesh = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.4, 1.4), new THREE.MeshStandardMaterial({ color: '#222', metalness: 0.8 }));
+        cabinMesh.position.set(0, 0.65, -0.1);
+        trafficGroup.add(cabinMesh);
+        const scale = 1.0 + Math.random() * 0.2;
+        trafficGroup.scale.set(scale, scale, scale);
+        return { mesh: trafficGroup, radiusX: 0.8 * scale, radiusZ: 1.4 * scale };
+    }
+
+    function createPlayerCarMesh(carColor) {
+        const carGroup = new THREE.Group();
+        const bodyMat = new THREE.MeshStandardMaterial({ color: carColor, roughness: 0.05, metalness: 0.8 });
+        const baseChassis = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.3, 2.9), bodyMat); 
+        baseChassis.position.y = 0.2; 
+        carGroup.add(baseChassis);
+        
+        const cabinMat = new THREE.MeshStandardMaterial({ color: '#0d0d0d', roughness: 0.02, metalness: 0.9 });
+        const cabinMesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.35, 1.4), cabinMat); 
+        cabinMesh.position.set(0, 0.5, -0.1); 
+        carGroup.add(cabinMesh);
+
+        const wingMat = new THREE.MeshStandardMaterial({ color: '#111111', metalness: 0.9 });
+        const leftFin = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.8), wingMat);
+        leftFin.position.set(-0.85, 0.3, 0.6);
+        const rightFin = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.4, 0.8), wingMat);
+        rightFin.position.set(0.85, 0.3, 0.6);
+        carGroup.add(leftFin, rightFin);
+
+        const neonLightMat = new THREE.MeshStandardMaterial({ color: '#00ffff', emissive: '#00ffff', emissiveIntensity: 2.0 });
+        const leftLight = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.08, 0.1), neonLightMat);
+        leftLight.position.set(-0.55, 0.25, -1.46);
+        const rightLight = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.08, 0.1), neonLightMat);
+        rightLight.position.set(0.55, 0.25, -1.46);
+        carGroup.add(leftLight, rightLight);
+
+        return carGroup;
+    }
+
+    function buildThreeEngineWorld() {
+        const viewportWrap = document.getElementById('canvas-wrapper');
+        const W = viewportWrap.clientWidth, H = viewportWrap.clientHeight;
+        mainScene = new THREE.Scene(); 
+        mainScene.background = new THREE.Color('#87CEEB'); 
+        mainScene.fog = new THREE.FogExp2('#87CEEB', 0.012); 
+        mainCamera = new THREE.PerspectiveCamera(55, W / H, 0.1, 1000);
+        mainCamera.position.set(0, 5.2, 9.5); 
+        mainCamera.lookAt(0, 1.0, -2.0);
+        
+        mainRenderer = new THREE.WebGLRenderer({ antialias: true }); 
+        mainRenderer.setSize(W, H);
+        mainRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        viewportWrap.innerHTML = ""; viewportWrap.appendChild(mainRenderer.domElement);
+        mainScene.add(new THREE.AmbientLight('#ffffff', 1.3)); 
+        
+        const sunLight = new THREE.DirectionalLight('#fffcaa', 1.6); 
+        sunLight.position.set(25, 50, -30); 
+        mainScene.add(sunLight);
+
+        runwayTracksArray = [];
+        for (let i = 0; i < 5; i++) {
+            const trackGroup = new THREE.Group();
+            const roadPlane = new THREE.Mesh(new THREE.PlaneGeometry(16.0, 40), new THREE.MeshStandardMaterial({ color: '#222327', roughness: 0.8 }));
+            roadPlane.rotation.x = -Math.PI / 2; 
+            trackGroup.add(roadPlane);
+
+            const leftBorder = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 40), new THREE.MeshBasicMaterial({ color: '#00f0ff' }));
+            leftBorder.rotation.x = -Math.PI / 2; leftBorder.position.set(-7.9, 0.02, 0);
+            trackGroup.add(leftBorder);
+
+            const rightBorder = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 40), new THREE.MeshBasicMaterial({ color: '#00f0ff' }));
+            rightBorder.rotation.x = -Math.PI / 2; rightBorder.position.set(7.9, 0.02, 0);
+            trackGroup.add(rightBorder);
+
+            for(let m = -1; m <= 1; m += 2) {
+                const laneDivider = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 40), new THREE.MeshBasicMaterial({ color: '#ffffff' }));
+                laneDivider.rotation.x = -Math.PI / 2;
+                laneDivider.position.set(m * 2.25, 0.01, 0);
+                trackGroup.add(laneDivider);
+            }
+
+            const leftGrass = new THREE.Mesh(new THREE.PlaneGeometry(120, 40), new THREE.MeshStandardMaterial({ color: '#144e18', roughness: 0.95 }));
+            leftGrass.rotation.x = -Math.PI / 2; leftGrass.position.x = -68.0; trackGroup.add(leftGrass);
+
+            const rightGrass = new THREE.Mesh(new THREE.PlaneGeometry(120, 40), new THREE.MeshStandardMaterial({ color: '#144e18', roughness: 0.95 }));
+            rightGrass.rotation.x = -Math.PI / 2; rightGrass.position.x = 68.0; trackGroup.add(rightGrass);
+
+            for(let j = 0; j < 5; j++) {
+                const treeL = create3DTreeMesh(); treeL.position.set(-9.5 - Math.random()*20, 0, -18 + j * 9); trackGroup.add(treeL);
+                const treeR = create3DTreeMesh(); treeR.position.set(9.5 + Math.random()*20, 0, -18 + j * 9); trackGroup.add(treeR);
+            }
+
+            trackGroup.position.z = -i * 40; 
+            mainScene.add(trackGroup); 
+            runwayTracksArray.push(trackGroup);
+        }
+    }
+
+    function spawnDynamicTrafficEntities() {
+        if (!GameState.isPlaying || GameState.isGameOver || GameState.isPaused) return;
+        const currentTime = Date.now();
+        let spawnDelay = Math.max(300, 1100 / GameState.currentSpeedMultiplier);
+        
+        if (currentTime - GameState.lastSpawnTime > spawnDelay) {
+            GameState.lastSpawnTime = currentTime;
+            const targetLane = Math.floor(Math.random() * 3);
+            let roll = Math.random();
+            
+            if(roll < 0.6) {
+                const trafficInstance = createDetailedRandomTrafficMesh();
+                trafficInstance.mesh.position.set(structuralLaneVectors[targetLane], 0, -65);
+                mainScene.add(trafficInstance.mesh);
+                activeEntitiesArray.push({ 
+                    mesh: trafficInstance.mesh, speed: 0.42,
+                    radX: trafficInstance.radiusX, radZ: trafficInstance.radiusZ,
+                    lane: targetLane, nearMissChecked: false
+                });
+            } else if (roll < 0.88) {
+                const cMesh = createCoinMesh();
+                cMesh.position.set(structuralLaneVectors[targetLane], 0.35, -65);
+                mainScene.add(cMesh);
+                goldCoinsArray.push(cMesh);
+            } else {
+                const fMesh = createFuelCanMesh();
+                fMesh.position.set(structuralLaneVectors[targetLane], 0.1, -65);
+                mainScene.add(fMesh);
+                fuelCansArray.push(fMesh);
+            }
+        }
+    }
+
+    function triggerNearMissEffect() {
+        const now = Date.now();
+        if(now - GameState.lastNearMissTime < 2500) { GameState.comboCount++; } else { GameState.comboCount = 1; }
+        GameState.lastNearMissTime = now;
+
+        playSound('nearmiss'); // Audio effect play
+        let bonusEarned = 50 * GameState.comboCount;
+        GameState.coins += bonusEarned;
+        GameState.coinsCollectedThisRun += bonusEarned;
+        document.getElementById('hud-coins-val').innerText = GameState.coins;
+        
+        const pop = document.getElementById('near-miss-pop');
+        pop.innerText = `🔥 ULTRA NEAR MISS! +${bonusEarned}`;
+        pop.style.display = 'block';
+        pop.style.transform = 'translate(-50%, -50%) scale(1.1)';
+        
+        const comboPop = document.getElementById('combo-pop');
+        if(GameState.comboCount > 1) {
+            comboPop.innerText = `COMBO X${GameState.comboCount}!`;
+            comboPop.style.display = 'block';
+        }
+
+        setTimeout(() => {
+            pop.style.transform = 'translate(-50%, -50%) scale(0.5)';
+            pop.style.display = 'none';
+            comboPop.style.display = 'none';
+        }, 500);
+    }
+
+    function executeMainGamePhysicsLoop() {
+        if (!GameState.isPlaying || GameState.isGameOver || GameState.isPaused) return;
+        const time = Date.now();
+        
+        if (time - GameState.scoreTimerTracker >= 1000) {
+            GameState.scoreTimerTracker = time;
+            GameState.totalScore++;
+            document.getElementById('hud-score-val').innerText = GameState.totalScore + "s";
+            
+            let velocityBase = 0.035 + (GameState.speedLvl * 0.005);
+            GameState.currentSpeedMultiplier = Math.min(3.0, 1.0 + (GameState.totalScore * velocityBase));
+
+            let currentKmhDisplay = Math.floor(100 + (GameState.totalScore * 4.5 * GameState.currentSpeedMultiplier));
+            document.getElementById('hud-speed-val').innerText = `${currentKmhDisplay} km/h`;
+
+            GameState.fuel = Math.max(0, GameState.fuel - 2.2);
+            document.getElementById('hud-fuel-fill').style.width = `${GameState.fuel}%`;
+            
+            if(GameState.fuel <= 0) { 
+                triggerCriticalFuelPrompt(); 
+                return;
+            }
+        }
+
+        let lerpSpeed = 0.14 + (GameState.handlingLvl * 0.04);
+        playerVehicleMesh.position.x += (structuralLaneVectors[GameState.currentLane] - playerVehicleMesh.position.x) * lerpSpeed;
+
+        let roadFlowSpeed = 0.48 * GameState.currentSpeedMultiplier;
+        runwayTracksArray.forEach(track => { track.position.z += roadFlowSpeed; if (track.position.z > 40) track.position.z -= 200; });
+
+        for (let k = goldCoinsArray.length - 1; k >= 0; k--) {
+            const coin = goldCoinsArray[k]; coin.position.z += roadFlowSpeed; coin.rotation.y += 0.05;
+            if(GameState.perkMagnetOwned) {
+                let d = coin.position.distanceTo(playerVehicleMesh.position);
+                if(d < 12) {
+                    coin.position.x += (playerVehicleMesh.position.x - coin.position.x) * 0.25;
+                    coin.position.z += (playerVehicleMesh.position.z - coin.position.z) * 0.25;
+                }
+            }
+            if(coin.position.z > 12) { mainScene.remove(coin); goldCoinsArray.splice(k, 1); continue; }
+            if(Math.abs(playerVehicleMesh.position.x - coin.position.x) < 0.9 && Math.abs(playerVehicleMesh.position.z - coin.position.z) < 1.4) {
+                mainScene.remove(coin); goldCoinsArray.splice(k, 1);
+                playSound('coin'); // Coin Sound effect
+                GameState.coins += 1; GameState.coinsCollectedThisRun += 1;
+                document.getElementById('hud-coins-val').innerText = GameState.coins;
+            }
+        }
+
+        for (let f = fuelCansArray.length - 1; f >= 0; f--) {
+            const can = fuelCansArray[f]; can.position.z += roadFlowSpeed; can.rotation.y += 0.03;
+            if(can.position.z > 12) { mainScene.remove(can); fuelCansArray.splice(f, 1); continue; }
+            if(Math.abs(playerVehicleMesh.position.x - can.position.x) < 0.9 && Math.abs(playerVehicleMesh.position.z - can.position.z) < 1.4) {
+                mainScene.remove(can); fuelCansArray.splice(f, 1);
+                playSound('fuel'); // Fuel Sound effect
+                GameState.fuel = Math.min(100, GameState.fuel + 25);
+                document.getElementById('hud-fuel-fill').style.width = `${GameState.fuel}%`;
+            }
+        }
+
+        for (let i = activeEntitiesArray.length - 1; i >= 0; i--) {
+            const entity = activeEntitiesArray[i]; 
+            entity.mesh.position.z += (entity.speed * GameState.currentSpeedMultiplier);
+            if (entity.mesh.position.z > 15) { mainScene.remove(entity.mesh); activeEntitiesArray.splice(i, 1); continue; }
+            
+            let dynamicBoundX = entity.radX + 0.75;
+            let dynamicBoundZ = entity.radZ + 1.35;
+
+            if (!entity.nearMissChecked && Math.abs(playerVehicleMesh.position.z - entity.mesh.position.z) < 1.1) {
+                let lateralDistance = Math.abs(playerVehicleMesh.position.x - entity.mesh.position.x);
+                if (lateralDistance > dynamicBoundX && lateralDistance < (dynamicBoundX + 0.45)) {
+                    entity.nearMissChecked = true;
+                    triggerNearMissEffect();
+                }
+            }
+
+            if (Math.abs(playerVehicleMesh.position.x - entity.mesh.position.x) < dynamicBoundX && Math.abs(playerVehicleMesh.position.z - entity.mesh.position.z) < dynamicBoundZ) {
+                mainScene.remove(entity.mesh); activeEntitiesArray.splice(i, 1);
+                if (GameState.perkShieldOwned) {
+                    GameState.perkShieldOwned = false;
+                    alert("🛡️ PLASMA ENERGY SHIELD COMPROMISED!");
+                    document.getElementById('perk-sh-pill').remove();
+                    continue;
+                }
+                executePlayerDamageImpactSystem();
+            }
+        }
+    }
+
+    function triggerCriticalFuelPrompt() {
+        GameState.isPlaying = false;
+        document.getElementById('road-touch-grid').style.display = 'none';
+        document.getElementById('fuel-prompt-coins').innerText = GameState.coins;
+        document.getElementById('fuel-purchase-terminal').style.display = 'flex';
+    }
+
+    function startCountdownSequence(onCountdownComplete) {
+        document.getElementById('countdown-overlay').style.display = 'flex';
+        let count = 3;
+        const numElement = document.getElementById('countdown-number');
+        numElement.innerText = count;
+
+        const interval = setInterval(() => {
+            count--;
+            if (count <= 0) {
+                clearInterval(interval);
+                document.getElementById('countdown-overlay').style.display = 'none';
+                onCountdownComplete();
+            } else {
+                numElement.innerText = count;
+            }
+        }, 1000);
+    }
+
+    function executePlayerDamageImpactSystem() {
+        playSound('crash'); // Crash sound execution
+        GameState.playerHP -= 1;
+        let heartsStr = ""; for (let i = 0; i < GameState.playerHP; i++) heartsStr += "❤️";
+        document.getElementById('hud-hearts-val').innerText = heartsStr === "" ? "💀 DETONATED" : heartsStr;
+        if (GameState.playerHP <= 0) {
+            GameState.isPlaying = false;
+            document.getElementById('road-touch-grid').style.display = 'none';
+            if (!GameState.hasRevivedThisRun) {
+                document.getElementById('revive-terminal').style.display = 'flex';
+            } else {
+                triggerTerminalGameOverSequence();
+            }
+        }
+    }
+
+    function triggerTerminalGameOverSequence() {
+        document.getElementById('revive-terminal').style.display = 'none';
+        document.getElementById('fuel-purchase-terminal').style.display = 'none';
+        GameState.isPlaying = false; GameState.isGameOver = true;
+        document.getElementById('game-hud').style.display = 'none';
+        document.getElementById('road-touch-grid').style.display = 'none';
+        
+        document.getElementById('final-score-lbl').innerText = GameState.totalScore;
+        document.getElementById('final-coins-lbl').innerText = GameState.coinsCollectedThisRun;
+        document.getElementById('btn-double-coins-ad').style.display = 'block';
+
+        let outcomeLbl = document.getElementById('bet-outcome-msg');
+        if(GameState.betActive) {
+            if(GameState.totalScore >= 30) {
+                GameState.coins += 200;
+                outcomeLbl.innerText = "🎉 SYSTEMS RISK BOND DECLARED PROFITABLE! +200";
+                outcomeLbl.style.color = "#39ff14";
+            } else {
+                outcomeLbl.innerText = "❌ POSITION LIQUIDATED: RECOVERY UNREALIZED.";
+                outcomeLbl.style.color = "#ff4b4b";
+            }
+            GameState.betActive = false;
+            document.getElementById('bet-status-lbl').innerText = "NO SYSTEM BONDED";
+            document.getElementById('bet-status-lbl').style.color = "#ff4b4b";
+        } else { outcomeLbl.innerText = ""; }
+        
+        updateDashboardWalletBalances();
+        document.getElementById('gameover-terminal').style.display = 'flex';
+    }
+
+    function startCoreGameplayFlow() {
+        document.getElementById('setup-menu-panel').style.display = 'none'; 
+        document.getElementById('game-hud').style.display = 'block';
+        
+        activeEntitiesArray.forEach(e => mainScene.remove(e.mesh));
+        goldCoinsArray.forEach(c => mainScene.remove(c));
+        fuelCansArray.forEach(f => mainScene.remove(f));
+        activeEntitiesArray = []; goldCoinsArray = []; fuelCansArray = [];
+
+        const perksBox = document.getElementById('perks-display'); perksBox.innerHTML = "";
+        if(GameState.perkMagnetOwned) perksBox.innerHTML += `<div class="hud-pill" id="perk-mg-pill" style="background:#ffcc00; font-size:0.65rem; padding:3px 6px; color:#000;">🧲 COBAL</div>`;
+        if(GameState.perkShieldOwned) perksBox.innerHTML += `<div class="hud-pill" id="perk-sh-pill" style="background:#39ff14; font-size:0.65rem; padding:3px 6px; color:#000;">🛡️ PLASMA</div>`;
+        if(GameState.perkNitroOwned) perksBox.innerHTML += `<div class="hud-pill" id="perk-nt-pill" style="background:#00f0ff; font-size:0.65rem; padding:3px 6px; color:#000;">🚀 FLUID</div>`;
+
+        if (!playerVehicleMesh) {
+            buildThreeEngineWorld();
+            playerVehicleMesh = createPlayerCarMesh(GameState.equippedColor);
+            mainScene.add(playerVehicleMesh);
+        }
+        playerVehicleMesh.position.set(structuralLaneVectors[1], 0, 4);
+        
+        GameState.totalScore = 0; GameState.currentSpeedMultiplier = 1.0; GameState.playerHP = 3;
+        GameState.coinsCollectedThisRun = 0; GameState.fuel = 100;
+        document.getElementById('hud-hearts-val').innerText = "❤️❤️❤️";
+        document.getElementById('hud-score-val').innerText = "0s";
+        document.getElementById('hud-speed-val').innerText = "100 km/h";
+        document.getElementById('hud-fuel-fill').style.width = `100%`;
+
+        GameState.currentLane = 1; GameState.isGameOver = false;
+        GameState.hasRevivedThisRun = false;
+
+        startCountdownSequence(() => {
+            document.getElementById('road-touch-grid').style.display = 'flex';
+            GameState.isPlaying = true; 
+            GameState.scoreTimerTracker = Date.now();
+        });
+
+        setTimeout(() => {
+            GameState.perkMagnetOwned = false; GameState.perkNitroOwned = false;
+            const m = document.getElementById('perk-mg-pill'); if(m) m.remove();
+            const n = document.getElementById('perk-nt-pill'); if(n) n.remove();
+        }, 10000);
+    }
+
+    function setupMenuInteractionTriggers() {
+        document.getElementById('tab-garage').onclick = () => { playSound('click'); drawGarageShopItemsSelectionGrid(); document.getElementById('sub-garage').style.display = 'flex'; };
+        document.getElementById('tab-upgrade').onclick = () => { playSound('click'); updateDashboardWalletBalances(); document.getElementById('sub-upgrade').style.display = 'flex'; };
+        document.getElementById('tab-bet').onclick = () => { playSound('click'); document.getElementById('sub-bet').style.display = 'flex'; };
+        document.getElementById('tab-loot').onclick = () => { playSound('click'); document.getElementById('sub-loot').style.display = 'flex'; };
+
+        document.getElementById('close-garage-btn').onclick = () => { playSound('click'); document.getElementById('sub-garage').style.display = 'none'; };
+        document.getElementById('close-upgrade-btn').onclick = () => { playSound('click'); document.getElementById('sub-upgrade').style.display = 'none'; };
+        document.getElementById('close-bet-btn').onclick = () => { playSound('click'); document.getElementById('sub-bet').style.display = 'none'; };
+        document.getElementById('close-loot-btn').onclick = () => { playSound('click'); document.getElementById('sub-loot').style.display = 'none'; };
+
+        document.getElementById('zone-left').onclick = () => { if(GameState.isPlaying && !GameState.isPaused) { GameState.currentLane = 0; playSound('click'); } };
+        document.getElementById('zone-center').onclick = () => { if(GameState.isPlaying && !GameState.isPaused) { GameState.currentLane = 1; playSound('click'); } };
+        document.getElementById('zone-right').onclick = () => { if(GameState.isPlaying && !GameState.isPaused) { GameState.currentLane = 2; playSound('click'); } };
+
+        document.getElementById('upgrade-handling-action').onclick = () => {
+            if (GameState.coins >= 500) { GameState.coins -= 500; GameState.handlingLvl++; playSound('fuel'); updateDashboardWalletBalances(); }
+        };
+        document.getElementById('upgrade-speed-action').onclick = () => {
+            if (GameState.coins >= 600) { GameState.coins -= 600; GameState.speedLvl++; playSound('fuel'); updateDashboardWalletBalances(); }
+        };
+        document.getElementById('refuel-tank-action').onclick = () => {
+            if (GameState.coins >= 200) { GameState.coins -= 200; GameState.fuel = 100; playSound('fuel'); updateDashboardWalletBalances(); }
+        };
+
+        document.getElementById('buy-magnet-btn').onclick = () => {
+            if(GameState.coins >= 500) { GameState.coins -= 500; GameState.perkMagnetOwned = true; playSound('fuel'); updateDashboardWalletBalances(); }
+        };
+        document.getElementById('buy-shield-btn').onclick = () => {
+            if(GameState.coins >= 700) { GameState.coins -= 700; GameState.perkShieldOwned = true; playSound('fuel'); updateDashboardWalletBalances(); }
+        };
+        document.getElementById('buy-nitro-btn').onclick = () => {
+            if(GameState.coins >= 400) { GameState.coins -= 400; GameState.perkNitroOwned = true; playSound('fuel'); updateDashboardWalletBalances(); }
+        };
+
+        document.getElementById('place-bet-btn').onclick = () => {
+            if(GameState.coins >= 100) {
+                GameState.coins -= 100; GameState.betActive = true; playSound('click'); updateDashboardWalletBalances();
+                document.getElementById('bet-status-lbl').innerText = "SYSTEM ACTIVE: MATRIX TIME REVEALED";
+                document.getElementById('bet-status-lbl').style.color = "#39ff14";
+            }
+        };
+
+        document.getElementById('buy-loot-btn').onclick = () => {
+            if(GameState.coins >= 200) {
+                GameState.coins -= 200; playSound('fuel');
+                let randomRoll = Math.random();
+                if(randomRoll < 0.4) { GameState.perkMagnetOwned = true; }
+                else if(randomRoll < 0.8) { GameState.coins += 350; }
+                else { GameState.perkShieldOwned = true; }
+                updateDashboardWalletBalances();
+            }
+        };
+
+        // START.IO MONETIZATION: Free recharge trigger
+        document.getElementById('ad-free-coins-btn').onclick = () => {
+            requestStartioMobileAdPlacement(() => { GameState.coins += 200; updateDashboardWalletBalances(); });
+        };
+
+        document.getElementById('buy-fuel-instant-btn').onclick = () => {
+            if (GameState.coins >= 200) {
+                GameState.coins -= 200; GameState.fuel = 100; updateDashboardWalletBalances();
+                document.getElementById('fuel-purchase-terminal').style.display = 'none';
+                startCountdownSequence(() => {
+                    document.getElementById('road-touch-grid').style.display = 'flex';
+                    GameState.isPlaying = true; GameState.scoreTimerTracker = Date.now();
+                });
+            } else { alert("Coins kam hain!"); }
+        };
+
+        // START.IO MONETIZATION: Free refill trigger
+        document.getElementById('skip-fuel-ad-btn').onclick = () => {
+            requestStartioMobileAdPlacement(() => {
+                GameState.fuel = 100; updateDashboardWalletBalances();
+                document.getElementById('fuel-purchase-terminal').style.display = 'none';
+                startCountdownSequence(() => {
+                    document.getElementById('road-touch-grid').style.display = 'flex';
+                    GameState.isPlaying = true; GameState.scoreTimerTracker = Date.now();
+                });
+            });
+        };
+
+        document.getElementById('terminate-fuel-btn').onclick = () => { triggerTerminalGameOverSequence(); };
+
+        document.getElementById('lucky-spin-btn').onclick = () => {
+            if (GameState.coins < 150) return;
+            GameState.coins -= 150; updateDashboardWalletBalances();
+            GameState.currentSpinReward = Math.floor(Math.random() * 500) + 100;
+            document.getElementById('base-prize-txt').innerText = GameState.currentSpinReward;
+            document.getElementById('actual-wheel').style.transform = "rotate(0deg)";
+            document.getElementById('trigger-wheel-spin-btn').style.display = "block";
+            document.getElementById('skip-wheel-spin-btn').style.display = "block";
+            document.getElementById('claim-final-coins-btn').style.display = "none";
+            document.getElementById('multiplier-wheel-overlay').style.display = "flex";
+        };
+
+        // START.IO MONETIZATION: Lucky spin multiplier
+        document.getElementById('trigger-wheel-spin-btn').onclick = () => {
+            requestStartioMobileAdPlacement(() => {
+                document.getElementById('trigger-wheel-spin-btn').style.display = "none";
+                document.getElementById('skip-wheel-spin-btn').style.display = "none";
+                const config = [{m:2,a:1845}, {m:3,a:1935}, {m:1,a:2025}, {m:5,a:2115}];
+                const pick = config[Math.floor(Math.random() * config.length)];
+                GameState.currentMultiplier = pick.m;
+                document.getElementById('actual-wheel').style.transform = `rotate(-${pick.a}deg)`;
+                setTimeout(() => {
+                    let total = GameState.currentSpinReward * GameState.currentMultiplier;
+                    document.getElementById('claim-final-coins-btn').innerText = `🎁 EXTRACT ${total} CREDITS`;
+                    document.getElementById('claim-final-coins-btn').style.display = "block";
+                }, 3600);
+            });
+        };
+        
+        document.getElementById('skip-wheel-spin-btn').onclick = () => {
+            GameState.currentMultiplier = 1;
+            document.getElementById('trigger-wheel-spin-btn').style.display = "none";
+            document.getElementById('skip-wheel-spin-btn').style.display = "none";
+            document.getElementById('claim-final-coins-btn').innerText = `🎁 EXTRACT ${GameState.currentSpinReward} CREDITS`;
+            document.getElementById('claim-final-coins-btn').style.display = "block";
+        };
+        document.getElementById('claim-final-coins-btn').onclick = () => {
+            GameState.coins += (GameState.currentSpinReward * GameState.currentMultiplier);
+            updateDashboardWalletBalances();
+            document.getElementById('multiplier-wheel-overlay').style.display = "none";
+        };
+
+        document.getElementById('launch-mission-btn').onclick = () => { startCoreGameplayFlow(); };
+        document.getElementById('hud-pause-btn').onclick = () => { GameState.isPaused = true; document.getElementById('pause-modal').style.display = 'flex'; };
+        document.getElementById('pause-resume-btn').onclick = () => { GameState.isPaused = false; document.getElementById('pause-modal').style.display = 'none'; };
+        document.getElementById('pause-quit-btn').onclick = () => { window.location.reload(); };
+        document.getElementById('btn-skip-revive').onclick = () => { triggerTerminalGameOverSequence(); };
+        
+        // START.IO MONETIZATION: Crash revive mechanic
+        document.getElementById('btn-revive-ad').onclick = () => {
+            requestStartioMobileAdPlacement(() => {
+                GameState.hasRevivedThisRun = true; GameState.playerHP = 3; GameState.fuel = 100;
+                document.getElementById('hud-hearts-val').innerText = "❤️❤️❤️";
+                document.getElementById('revive-terminal').style.display = 'none';
+                startCountdownSequence(() => {
+                    document.getElementById('road-touch-grid').style.display = 'flex';
+                    GameState.isPlaying = true; GameState.scoreTimerTracker = Date.now();
+                });
+            });
+        };
+
+        // START.IO MONETIZATION: End-game yield reward boost
+        document.getElementById('btn-double-coins-ad').onclick = () => {
+            requestStartioMobileAdPlacement(() => {
+                GameState.coins += GameState.coinsCollectedThisRun * 4; 
+                updateDashboardWalletBalances();
+                document.getElementById('btn-double-coins-ad').style.display = 'none';
+            });
+        };
+
+        document.getElementById('btn-reboot-run').onclick = () => { window.location.reload(); };
+        document.getElementById('daily-banner').onclick = () => { if(!GameState.dailyClaimed){ GameState.coins += 100; playSound('coin'); updateDashboardWalletBalances(); GameState.dailyClaimed = true; } };
+    }
+
+    function drawGarageShopItemsSelectionGrid() {
+        const holder = document.getElementById('garage-holder'); holder.innerHTML = "";
+        GameState.skins.forEach((skin, idx) => {
+            const box = document.createElement('div'); 
+            box.className = `grid-box ${GameState.equippedColor === skin.color ? 'active' : ''}`;
+            box.innerHTML = `<div><b>${skin.name}</b></div>`;
+            const btn = document.createElement('button'); btn.className = 'btn-action';
+            
+            if(skin.price && !skin.purchased) {
+                btn.innerText = "UNLOCK";
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    if(GameState.coins >= skin.price) {
+                        GameState.coins -= skin.price; skin.purchased = true;
+                        updateDashboardWalletBalances(); drawGarageShopItemsSelectionGrid();
+                    }
+                };
+            } else {
+                btn.innerText = GameState.equippedColor === skin.color ? "EQUIPPED" : "EQUIP"; 
+                btn.style.background = "#39ff14";
+                btn.onclick = () => { 
+                    GameState.equippedColor = skin.color; 
+                    if(playerVehicleMesh) {
+                        mainScene.remove(playerVehicleMesh);
+                        playerVehicleMesh = createPlayerCarMesh(GameState.equippedColor);
+                        playerVehicleMesh.position.set(structuralLaneVectors[GameState.currentLane], 0, 4);
+                        mainScene.add(playerVehicleMesh);
+                    }
+                    drawGarageShopItemsSelectionGrid();
+                };
+            }
+            box.appendChild(btn); holder.appendChild(box);
+        });
+    }
+
+    function coreEngineRuntimeTick() {
+        requestAnimationFrame(coreEngineRuntimeTick);
+        if(GameState.isPlaying && !GameState.isPaused) { executeMainGamePhysicsLoop(); spawnDynamicTrafficEntities(); }
+        if(mainRenderer && mainScene && mainCamera) mainRenderer.render(mainScene, mainCamera);
+    }
+
+    setupMenuInteractionTriggers();
+    updateDashboardWalletBalances();
+    coreEngineRuntimeTick();
+    </script>
+</body>
+</html>
